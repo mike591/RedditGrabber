@@ -2,46 +2,80 @@ package com.michaelallan.android.redditgrabber;
 
 
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+
+import java.util.ArrayList;
 
 /**
  * Created by Myko on 3/14/2016.
  */
 public class RedditGrabberFragment extends Fragment {
+    ArrayList<String> numbers;
+    private RecyclerView mRecyclerview;
 
     public static RedditGrabberFragment newInstance() {
         return new RedditGrabberFragment();
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        numbers = new ArrayList<>();
+        for (int i = 0; i < 50; i++) {
+            numbers.add("Number " + i);
+        }
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.fragment_reddit_recycler_view, container, false);
+        mRecyclerview = (RecyclerView) v.findViewById(R.id.my_recycler_view);
+        mRecyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+        return v;
     }
 
     public class RedditGrabberViewHolder extends RecyclerView.ViewHolder {
+        private Button mListButton;
+
         public RedditGrabberViewHolder(View itemView) {
             super(itemView);
+            mListButton = (Button) itemView.findViewById(R.id.title_button_view);
         }
+
+        public void bind(String title) {
+            mListButton.setText(title);
+        }
+
     }
 
-    public class RedditGrabberAdapter extends RecyclerView.Adapter {
+
+    public class RedditGrabberAdapter extends RecyclerView.Adapter<RedditGrabberViewHolder> {
+
         @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            return null;
+        public RedditGrabberViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
+            View view = layoutInflater.inflate(R.layout.list_reddit_items, parent, false);
+
+            return new RedditGrabberViewHolder(view);
         }
 
         @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-
+        public void onBindViewHolder(RedditGrabberViewHolder holder, int position) {
+            holder.bind(numbers.get(position));
         }
 
         @Override
         public int getItemCount() {
-            return 0;
+            return numbers.size();
         }
     }
-
 }

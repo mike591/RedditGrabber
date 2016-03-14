@@ -10,7 +10,7 @@
     tools:context="com.michaelallan.android.redditgrabber.MainActivity">
 
     <Button
-        android:id="@+id/title_text_view"
+        android:id="@+id/title_button_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
