@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Myko on 3/14/2016.
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 public class RedditGrabberFragment extends Fragment {
     ArrayList<String> numbers;
     private RecyclerView mRecyclerview;
+    private RedditGrabberAdapter mAdapter;
 
     public static RedditGrabberFragment newInstance() {
         return new RedditGrabberFragment();
@@ -40,6 +42,9 @@ public class RedditGrabberFragment extends Fragment {
         mRecyclerview = (RecyclerView) v.findViewById(R.id.my_recycler_view);
         mRecyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
 
+        mAdapter = new RedditGrabberAdapter(numbers);
+        mRecyclerview.setAdapter(mAdapter);
+
         return v;
     }
 
@@ -60,6 +65,12 @@ public class RedditGrabberFragment extends Fragment {
 
     public class RedditGrabberAdapter extends RecyclerView.Adapter<RedditGrabberViewHolder> {
 
+        private List<String> mNumbers;
+
+        public RedditGrabberAdapter(ArrayList<String> numbers) {
+            mNumbers = numbers;
+        }
+
         @Override
         public RedditGrabberViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
@@ -70,12 +81,12 @@ public class RedditGrabberFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(RedditGrabberViewHolder holder, int position) {
-            holder.bind(numbers.get(position));
+            holder.bind(mNumbers.get(position));
         }
 
         @Override
         public int getItemCount() {
-            return numbers.size();
+            return mNumbers.size();
         }
     }
 }
