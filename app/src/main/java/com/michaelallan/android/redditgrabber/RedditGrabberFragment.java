@@ -6,11 +6,15 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import org.json.JSONException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,9 +22,11 @@ import java.util.List;
  * Created by Myko on 3/14/2016.
  */
 public class RedditGrabberFragment extends Fragment {
-    ArrayList<String> numbers;
+    private static final String TAG = "REDDIT_GRABBER_FRAGMENT";
+
     private RecyclerView mRecyclerview;
     private RedditGrabberAdapter mAdapter;
+    private List<RedditLinkItems> mList;
 
     public static RedditGrabberFragment newInstance() {
         return new RedditGrabberFragment();
@@ -29,10 +35,7 @@ public class RedditGrabberFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        numbers = new ArrayList<>();
-        for (int i = 0; i < 50; i++) {
-            numbers.add("Number " + i);
-        }
+
     }
 
     @Nullable
@@ -42,7 +45,16 @@ public class RedditGrabberFragment extends Fragment {
         mRecyclerview = (RecyclerView) v.findViewById(R.id.my_recycler_view);
         mRecyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        mAdapter = new RedditGrabberAdapter(numbers);
+        LinkGenerator linkGenerator = new LinkGenerator();
+        try {
+            mList = linkGenerator.parseJSON();
+        } catch (IOException ioe) {
+            Log.d(TAG, "onCreateView: " + ioe);
+        } catch (JSONException j) {
+            Log.d(TAG, "onCreateView: " + j);
+        }
+
+        mAdapter = new RedditGrabberAdapter(mList);
         mRecyclerview.setAdapter(mAdapter);
 
         return v;
@@ -65,9 +77,9 @@ public class RedditGrabberFragment extends Fragment {
 
     public class RedditGrabberAdapter extends RecyclerView.Adapter<RedditGrabberViewHolder> {
 
-        private List<String> mNumbers;
+        private List<RedditLinkItems> mNumbers;
 
-        public RedditGrabberAdapter(ArrayList<String> numbers) {
+        public RedditGrabberAdapter(List<RedditLinkItems> numbers) {
             mNumbers = numbers;
         }
 
@@ -81,7 +93,7 @@ public class RedditGrabberFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(RedditGrabberViewHolder holder, int position) {
-            holder.bind(mNumbers.get(position));
+            holder.bind(mNumbers.get(position).getTitle());
         }
 
         @Override
