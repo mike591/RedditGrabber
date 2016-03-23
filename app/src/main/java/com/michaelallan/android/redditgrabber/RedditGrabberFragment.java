@@ -1,6 +1,8 @@
 package com.michaelallan.android.redditgrabber;
 
 
+import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -10,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.Button;
 
 import org.json.JSONException;
@@ -23,6 +26,7 @@ import java.util.List;
  */
 public class RedditGrabberFragment extends Fragment {
     private static final String TAG = "REDDIT_GRABBER_FRAGMENT";
+    public static final String LINK_URL = "LINK_URL";
 
     private RecyclerView mRecyclerview;
     private RedditGrabberAdapter mAdapter;
@@ -35,42 +39,63 @@ public class RedditGrabberFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        mList = new ArrayList<RedditLinkItems>();
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_reddit_recycler_view, container, false);
+
+        new getRedditInfo().execute();
+
         mRecyclerview = (RecyclerView) v.findViewById(R.id.my_recycler_view);
         mRecyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        LinkGenerator linkGenerator = new LinkGenerator();
-        try {
-            mList = linkGenerator.parseJSON();
-        } catch (IOException ioe) {
-            Log.d(TAG, "onCreateView: " + ioe);
-        } catch (JSONException j) {
-            Log.d(TAG, "onCreateView: " + j);
-        }
-
-        mAdapter = new RedditGrabberAdapter(mList);
-        mRecyclerview.setAdapter(mAdapter);
+        updateUI();
 
         return v;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateUI();
+    }
+
+    public void updateUI() {
+        if (mAdapter == null) {
+            mAdapter = new RedditGrabberAdapter(mList);
+            mRecyclerview.setAdapter(mAdapter);
+        } else {
+            mAdapter.updateList(mList);
+            mAdapter.notifyDataSetChanged();
+        }
     }
 
     public class RedditGrabberViewHolder extends RecyclerView.ViewHolder {
         private Button mListButton;
 
+
+
         public RedditGrabberViewHolder(View itemView) {
             super(itemView);
             mListButton = (Button) itemView.findViewById(R.id.title_button_view);
+            mListButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(), WebViewActivity.class);
+                    intent.putExtra(LINK_URL, mList.get(getAdapterPosition()).getUrl());
+                    startActivity(intent);
+                }
+            });
         }
 
         public void bind(String title) {
             mListButton.setText(title);
         }
+
+
 
     }
 
@@ -100,5 +125,26 @@ public class RedditGrabberFragment extends Fragment {
         public int getItemCount() {
             return mNumbers.size();
         }
+
+        public void updateList(List<RedditLinkItems> list) {
+            mNumbers = list;
+        }
+    }
+
+    public class getRedditInfo extends AsyncTask<Void, Void, List<RedditLinkItems>> {
+
+        @Override
+        protected List<RedditLinkItems> doInBackground(Void... params) {
+            return LinkGenerator.parseJSON();
+        }
+
+        @Override
+        protected void onPostExecute(List<RedditLinkItems> redditLinkItemses) {
+            Log.i(TAG, "onPostExecute: redditLinkItemses size is " + redditLinkItemses.size());
+            mList = redditLinkItemses;
+            Log.i(TAG, "onPostExecute: mList size is " + mList.size());
+            updateUI();
+        }
     }
 }
+

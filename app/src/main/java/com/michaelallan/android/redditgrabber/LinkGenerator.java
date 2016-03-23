@@ -21,11 +21,7 @@ import java.util.List;
 public class LinkGenerator {
     private static final String TAG = "LINK_GENERATOR";
 
-    public LinkGenerator() {
-
-    }
-
-    public byte[] getURL() throws IOException {
+    public static byte[] getURL() throws IOException {
 
         URL url = new URL("https://www.reddit.com/r/all.json");
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -38,7 +34,7 @@ public class LinkGenerator {
             byte[] URLBuffer = new byte[1024];
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             int bytesRead = 0;
-            while((bytesRead = in.read(URLBuffer)) > 0) {
+            while ((bytesRead = in.read(URLBuffer)) > 0) {
                 out.write(URLBuffer, 0, bytesRead);
             }
             out.close();
@@ -48,23 +44,34 @@ public class LinkGenerator {
         }
     }
 
-    public List<RedditLinkItems> parseJSON() throws JSONException, IOException{
-        byte[] bytes = getURL();
-        JSONObject jBody = new JSONObject(bytes.toString());
-        JSONObject jTitle = jBody.getJSONObject("data");
-        JSONArray jsonArray = jTitle.getJSONArray("data");
-        List<RedditLinkItems> links = new ArrayList<>();
-
-        for (int i = 0; i < jsonArray.length(); i++) {
-            JSONObject titleObject = jsonArray.getJSONObject(i);
-            RedditLinkItems title = new RedditLinkItems(titleObject.getString("title"));
-            links.add(title);
-        }
-
-        return links;
+    private static String getJsonString() throws IOException {
+        return new String(getURL());
     }
 
+    public static List<RedditLinkItems> parseJSON() {
+        List<RedditLinkItems> links = new ArrayList<>();
 
+        try {
+            byte[] bytes = getURL();
+            JSONObject jBody = new JSONObject(getJsonString());
+            JSONObject jData = jBody.getJSONObject("data");
+            JSONArray JChildren = jData.getJSONArray("children");
+
+            for (int i = 0; i < JChildren.length(); i++) {
+                JSONObject redditLinkDataObjects = JChildren.getJSONObject(i).getJSONObject("data");
+                RedditLinkItems redditLinkItems = new RedditLinkItems(redditLinkDataObjects.getString("title"));
+                redditLinkItems.setUrl("https://m.reddit.com"+redditLinkDataObjects.getString("permalink"));
+                links.add(redditLinkItems);
+            }
+        } catch (IOException ioe) {
+            Log.d(TAG, "parseJSON: " + ioe);
+        } catch (JSONException j) {
+            Log.d(TAG, "parseJSON: " + j);
+        }
+
+        Log.i(TAG, "parseJson Size is: " + links.size());
+        return links;
+    }
 }
 
 
