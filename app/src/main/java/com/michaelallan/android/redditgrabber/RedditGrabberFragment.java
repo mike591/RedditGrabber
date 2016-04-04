@@ -6,18 +6,22 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.Toast;
 
-import org.json.JSONException;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +36,9 @@ public class RedditGrabberFragment extends Fragment {
     private RedditGrabberAdapter mAdapter;
     private List<RedditLinkItems> mList;
 
+    private ActionBarDrawerToggle mDrawerToggle;
+    private DrawerLayout mDrawerLayout;
+
     public static RedditGrabberFragment newInstance() {
         return new RedditGrabberFragment();
     }
@@ -40,27 +47,72 @@ public class RedditGrabberFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mList = new ArrayList<RedditLinkItems>();
+        setHasOptionsMenu(true);
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_reddit_recycler_view, container, false);
 
+        View v = inflater.inflate(R.layout.fragment_reddit_recycler_view, container, false);
         new getRedditInfo().execute();
+
+        mDrawerLayout = (DrawerLayout) v.findViewById(R.id.drawer_layout);
+        mDrawerToggle = new ActionBarDrawerToggle(getActivity(),
+                mDrawerLayout, R.string.drawer_open, R.string.drawer_close) {
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                Toast.makeText(getActivity(), "Drawer Opened", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+                Toast.makeText(getActivity(), "Drawer Close", Toast.LENGTH_SHORT).show();
+            }
+        };
+        mDrawerLayout.addDrawerListener(mDrawerToggle);
+        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
+        actionBar.setHomeButtonEnabled(true);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+
 
         mRecyclerview = (RecyclerView) v.findViewById(R.id.my_recycler_view);
         mRecyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         updateUI();
+        mDrawerToggle.syncState();
 
         return v;
     }
+
 
     @Override
     public void onResume() {
         super.onResume();
         updateUI();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_reddit_recycler_view, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        switch (item.getItemId()) {
+            case R.id.menu_item_drawer:
+
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     public void updateUI() {
