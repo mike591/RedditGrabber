@@ -21,9 +21,9 @@ import java.util.List;
 public class LinkGenerator {
     private static final String TAG = "LINK_GENERATOR";
 
-    public static byte[] getURL() throws IOException {
+    public static byte[] getURL(String subreddit) throws IOException {
 
-        URL url = new URL("https://www.reddit.com/r/all.json");
+        URL url = new URL("https://www.reddit.com/"+subreddit+".json");
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         urlConnection.setReadTimeout(30000);
         if (urlConnection.getResponseCode() != HttpURLConnection.HTTP_OK) {
@@ -44,16 +44,16 @@ public class LinkGenerator {
         }
     }
 
-    private static String getJsonString() throws IOException {
-        return new String(getURL());
+    private static String getJsonString(String subreddit) throws IOException {
+        return new String(getURL(subreddit));
     }
 
-    public static List<RedditLinkItems> parseJSON() {
+    public static List<RedditLinkItems> parseJSON(String subreddit) {
         List<RedditLinkItems> links = new ArrayList<>();
 
         try {
-            byte[] bytes = getURL();
-            JSONObject jBody = new JSONObject(getJsonString());
+            byte[] bytes = getURL(subreddit);
+            JSONObject jBody = new JSONObject(getJsonString(subreddit));
             JSONObject jData = jBody.getJSONObject("data");
             JSONArray JChildren = jData.getJSONArray("children");
 

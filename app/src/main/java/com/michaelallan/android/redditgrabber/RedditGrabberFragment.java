@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -13,13 +14,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -38,6 +43,8 @@ public class RedditGrabberFragment extends Fragment {
 
     private ActionBarDrawerToggle mDrawerToggle;
     private DrawerLayout mDrawerLayout;
+    private ListView mDrawerList;
+    private static String subreddit;
 
     public static RedditGrabberFragment newInstance() {
         return new RedditGrabberFragment();
@@ -78,6 +85,20 @@ public class RedditGrabberFragment extends Fragment {
         actionBar.setHomeButtonEnabled(true);
         actionBar.setDisplayHomeAsUpEnabled(true);
 
+        mDrawerList = (ListView) v.findViewById(R.id.left_drawer);
+        final String[] mDrawerItems = getResources().getStringArray(R.array.subreddit);
+        mDrawerList.setAdapter(new ArrayAdapter<String>(getActivity(),
+                android.R.layout.simple_list_item_1, mDrawerItems));
+        mDrawerList.setOnItemClickListener(new ListView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                subreddit = mDrawerItems[position];
+                Log.i(TAG, "onItemClick: " + subreddit);
+                mDrawerLayout.closeDrawer(Gravity.LEFT);
+                new getRedditInfo().execute();
+                updateUI();
+            }
+        });
 
         mRecyclerview = (RecyclerView) v.findViewById(R.id.my_recycler_view);
         mRecyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -107,8 +128,9 @@ public class RedditGrabberFragment extends Fragment {
             return true;
         }
         switch (item.getItemId()) {
-            case R.id.menu_item_drawer:
-
+            case R.id.menu_item_refresh:
+                new getRedditInfo().execute();
+                updateUI();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -116,6 +138,12 @@ public class RedditGrabberFragment extends Fragment {
     }
 
     public void updateUI() {
+        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
+        if (subreddit == null) {
+            subreddit = "/r/all";
+        }
+        actionBar.setTitle(subreddit);
+
         if (mAdapter == null) {
             mAdapter = new RedditGrabberAdapter(mList);
             mRecyclerview.setAdapter(mAdapter);
@@ -187,7 +215,10 @@ public class RedditGrabberFragment extends Fragment {
 
         @Override
         protected List<RedditLinkItems> doInBackground(Void... params) {
-            return LinkGenerator.parseJSON();
+            if (subreddit == null) {
+                return LinkGenerator.parseJSON("/r/all");
+            }
+            return LinkGenerator.parseJSON(subreddit);
         }
 
         @Override
