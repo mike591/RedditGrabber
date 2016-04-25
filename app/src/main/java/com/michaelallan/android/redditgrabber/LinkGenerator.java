@@ -20,10 +20,17 @@ import java.util.List;
  */
 public class LinkGenerator {
     private static final String TAG = "LINK_GENERATOR";
+    private static String after;
 
     public static byte[] getURL(String subreddit) throws IOException {
 
-        URL url = new URL("https://www.reddit.com/"+subreddit+".json");
+        URL url;
+        if (after == null) {
+            url = new URL("https://www.reddit.com/" + subreddit + ".json");
+        } else {
+            url = new URL("https://www.reddit.com/" + subreddit + ".json?after="+after);
+        }
+
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         urlConnection.setReadTimeout(30000);
         if (urlConnection.getResponseCode() != HttpURLConnection.HTTP_OK) {
@@ -56,6 +63,9 @@ public class LinkGenerator {
             JSONObject jBody = new JSONObject(getJsonString(subreddit));
             JSONObject jData = jBody.getJSONObject("data");
             JSONArray JChildren = jData.getJSONArray("children");
+
+            after = jData.getString("after");
+            Log.i(TAG, "after = "+after);
 
             for (int i = 0; i < JChildren.length(); i++) {
                 JSONObject redditLinkDataObjects = JChildren.getJSONObject(i).getJSONObject("data");
