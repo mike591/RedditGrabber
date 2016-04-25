@@ -46,6 +46,11 @@ public class RedditGrabberFragment extends Fragment {
     private ListView mDrawerList;
     private static String subreddit;
 
+    private int previousTotal = 0;
+    private boolean loading = true;
+    private int visibleThreshold = 5;
+    int firstVisibleItem, visibleItemCount, totalItemCount;
+
     public static RedditGrabberFragment newInstance() {
         return new RedditGrabberFragment();
     }
@@ -101,7 +106,37 @@ public class RedditGrabberFragment extends Fragment {
         });
 
         mRecyclerview = (RecyclerView) v.findViewById(R.id.my_recycler_view);
-        mRecyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
+        final LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
+        mRecyclerview.setLayoutManager(mLayoutManager);
+
+        mRecyclerview.addOnScrollListener(new RecyclerView.OnScrollListener() {
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                visibleItemCount = mRecyclerview.getChildCount();
+                totalItemCount = mLayoutManager.getItemCount();
+                firstVisibleItem = mLayoutManager.findFirstVisibleItemPosition();
+
+                if (loading) {
+                    if (totalItemCount > previousTotal) {
+                        loading = false;
+                        previousTotal = totalItemCount;
+                    }
+                }
+                if (!loading && (totalItemCount - visibleItemCount)
+                        <= (firstVisibleItem + visibleThreshold)) {
+                    // End has been reached
+
+                    Log.i("Yaeye!", "end called");
+
+                    // Do something
+
+                    loading = true;
+                }
+            }
+        });
 
         updateUI();
         mDrawerToggle.syncState();
@@ -230,4 +265,6 @@ public class RedditGrabberFragment extends Fragment {
         }
     }
 }
+
+
 
