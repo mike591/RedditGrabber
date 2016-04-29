@@ -24,6 +24,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -44,6 +45,10 @@ public class RedditGrabberFragment extends Fragment {
     private ActionBarDrawerToggle mDrawerToggle;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
+    private LinearLayout mNavLinearLayout;
+    private Button mNextButton;
+    private Button mPrevButton;
+
     private static String subreddit;
 
     private int previousTotal = 0;
@@ -68,6 +73,10 @@ public class RedditGrabberFragment extends Fragment {
 
         View v = inflater.inflate(R.layout.fragment_reddit_recycler_view, container, false);
         new getRedditInfo().execute();
+
+        mNavLinearLayout = (LinearLayout) v.findViewById(R.id.navigation_button);
+        mNextButton = (Button) v.findViewById(R.id.next_button);
+        mPrevButton = (Button) v.findViewById(R.id.prev_button);
 
         mDrawerLayout = (DrawerLayout) v.findViewById(R.id.drawer_layout);
         mDrawerToggle = new ActionBarDrawerToggle(getActivity(),
@@ -119,21 +128,16 @@ public class RedditGrabberFragment extends Fragment {
                 totalItemCount = mLayoutManager.getItemCount();
                 firstVisibleItem = mLayoutManager.findFirstVisibleItemPosition();
 
-                if (loading) {
-                    if (totalItemCount > previousTotal) {
-                        loading = false;
-                        previousTotal = totalItemCount;
-                    }
-                }
-                if (!loading && (totalItemCount - visibleItemCount)
-                        <= (firstVisibleItem + visibleThreshold)) {
+                if (totalItemCount <= (firstVisibleItem + visibleItemCount)) {
                     // End has been reached
 
-                    Log.i("Yaeye!", "end called");
+                    Log.i(TAG, "end called");
 
-                    // Do something
-
-                    loading = true;
+                    mRecyclerview.setPadding(0, 0, 0, 150);
+                    mNavLinearLayout.setVisibility(View.VISIBLE);
+                } else {
+                    mNavLinearLayout.setVisibility(View.INVISIBLE);
+                    mRecyclerview.setPadding(0, 0, 0, 0);
                 }
             }
         });

@@ -21,15 +21,18 @@ import java.util.List;
 public class LinkGenerator {
     private static final String TAG = "LINK_GENERATOR";
     private static String after;
+    private static String currentSR;
 
     public static byte[] getURL(String subreddit) throws IOException {
 
         URL url;
-        if (after == null) {
+        if (after == null || currentSR == null || !subreddit.equals(currentSR)) {
             url = new URL("https://www.reddit.com/" + subreddit + ".json");
         } else {
             url = new URL("https://www.reddit.com/" + subreddit + ".json?after="+after);
         }
+
+        currentSR = subreddit;
 
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         urlConnection.setReadTimeout(30000);
